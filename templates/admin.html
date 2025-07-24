@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>呼び出し管理画面</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* スピンボタン削除（Chrome, Safariなど） */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox対策 */
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body>
+<div class="box center" style="text-align: center;">
+  <h1>呼び出し管理</h1>
+
+<div class="box center" style="text-align: center;">
+  <h2>番号入力（受付 → 呼び出し → 削除）</h2>
+  <form method="POST" action="/handle">
+    番号を入力して送信:
+    <input type="number" name="number" required autofocus>
+    <button type="submit">送信</button>
+  </form>
+<h2>番号リセット（全削除）</h2>
+<form method="POST" action="/reset" onsubmit="return confirm('本当にすべての番号を削除してリセットしますか？')">
+  <button type="submit" style="color: red;">⚠ 番号を全てリセットする</button>
+</form>
+
+
+  <h2>【発券済み一覧】</h2>
+  <table>
+    <tr><th>番号</th><th>状態</th></tr>
+    {% for ticket in data["tickets"] %}
+    <tr>
+      <td>{{ ticket.number }}</td>
+      <td>{{ ticket.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <p><a href="/monitor_config">受付画面へ戻る</a></p>
+</body>
+</html>
+

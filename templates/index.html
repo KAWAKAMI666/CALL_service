@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>受付・呼び出し管理</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>肉屋テイクアウト 番号札システム</h1>
+
+  <h2>【設定】</h2>
+  <form method="POST" action="/set">
+    店名: <input type="text" name="store_name" value="{{ data['store_name'] }}"><br>
+    コメント: <input type="text" name="comment" value="{{ data['comment'] }}"><br>
+    印刷枚数: <input type="number" name="print_copies" value="{{ data['print_copies'] }}" min="1"><br>
+    <button type="submit">設定を保存</button>
+  </form>
+
+  <h2>【番号操作】</h2>
+  <form method="POST" action="/adjust">
+    <button name="delta" value="-1">-</button>
+    現在の番号: {{ data['current_number'] }}
+    <button name="delta" value="1">+</button>
+  </form>
+  <form method="POST" action="/issue">
+    <button>次の番号を発券する</button>
+  </form>
+
+  <h2>【発券済み一覧】</h2>
+  <table>
+    <tr><th>番号</th><th>状態</th><th>呼出回数</th><th>操作</th></tr>
+    {% for t in data['tickets'] %}
+    <tr>
+      <td>{{ t['number'] }}</td>
+      <td>{{ t['status'] }}</td>
+      <td>{{ t['calls'] }}</td>
+      <td>
+        <form method="POST" action="/call/{{ t['number'] }}" style="display:inline;">
+          <button>呼び出し</button>
+        </form>
+        <form method="POST" action="/delete/{{ t['number'] }}" style="display:inline;">
+          <button>削除</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <p><a href="/monitor" target="_blank">モニター画面を開く</a></p>
+</body>
+</html>

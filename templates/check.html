@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>呼び出し確認</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta http-equiv="refresh" content="10">
+</head>
+<body>
+  <h1>番号札呼び出し確認</h1>
+  <p>あなたの番号: <strong>{{ number }}</strong></p>
+  <p>状態: <strong>{{ status }}</strong></p>
+</body>
+</html>

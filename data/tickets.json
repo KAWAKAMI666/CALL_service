@@ -1,0 +1,60 @@
+{
+  "current_number": 0,
+  "store_name": "肉の松屋",
+  "comment": "29日は肉の日",
+  "print_copies": 2,
+  "tickets": [
+    {
+      "number": 1,
+      "status": "呼び出し",
+      "scan_count": 1
+    },
+    {
+      "number": 2,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 3,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 4,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 5,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 6,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 7,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 8,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 9,
+      "status": "受付",
+      "scan_count": 0
+    },
+    {
+      "number": 10,
+      "status": "受付",
+      "scan_count": 0
+    }
+  ],
+  "reload_interval": 10,
+  "wait_time_unit": 2
+}
