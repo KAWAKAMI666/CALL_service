@@ -3,7 +3,13 @@
   "store_name": "肉の松屋",
   "comment": "29日は肉の日",
   "print_copies": 2,
-  "tickets": [],
+  "tickets": [
+    {
+      "number": 54,
+      "status": "受付",
+      "scan_count": 0
+    }
+  ],
   "reload_interval": 10,
   "wait_time_unit": 2
 }
