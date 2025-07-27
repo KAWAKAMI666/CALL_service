@@ -35,16 +35,32 @@
 </form>
 
 
-  <h2>【発券済み一覧】</h2>
-  <table>
-    <tr><th>番号</th><th>状態</th></tr>
-    {% for ticket in data["tickets"] %}
-    <tr>
-      <td>{{ ticket.number }}</td>
-      <td>{{ ticket.status }}</td>
-    </tr>
-    {% endfor %}
-  </table>
+<h2>【発券済み一覧】</h2>
+<table>
+  <tr><th>番号</th><th>状態</th><th>操作</th></tr>
+  {% for ticket in data["tickets"] %}
+  <tr>
+    <td>{{ ticket.number }}</td>
+    <td>{{ ticket.status }}</td>
+    <td>
+      <!-- 状態変更 -->
+      <form method="POST" action="/handle" style="display:inline;">
+        <input type="hidden" name="number" value="{{ ticket.number }}">
+        <input type="hidden" name="action" value="next">
+        <button type="submit">状態変更</button>
+      </form>
+
+      <!-- 削除 -->
+      <form method="POST" action="/handle" style="display:inline;" onsubmit="return confirm('本当に削除しますか？');">
+        <input type="hidden" name="number" value="{{ ticket.number }}">
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" style="color:red;">削除</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
 
   <p><a href="/monitor_config">受付画面へ戻る</a></p>
 </body>

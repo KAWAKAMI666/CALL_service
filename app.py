@@ -138,10 +138,12 @@ def monitor():
 @app.route("/handle", methods=["POST"])
 def handle_number():
     number = int(request.form.get("number"))
+    action = request.form.get("action", "next")
     data = load_data()
     ticket = next((t for t in data["tickets"] if t["number"] == number), None)
 
-    if ticket is None:
+    if ticket is None and action == "next":
+        # 新規受付として追加
         data["tickets"].append({
             "number": number,
             "status": "受付",
@@ -149,14 +151,21 @@ def handle_number():
         })
         generate_qr(number)
         generate_barcode(number)
-    elif ticket["scan_count"] == 0:
-        ticket["scan_count"] = 1
-        ticket["status"] = "呼び出し"
-    elif ticket["scan_count"] >= 1:
-        data["tickets"] = [t for t in data["tickets"] if t["number"] != number]
+
+    elif ticket:
+        if action == "next":
+            if ticket["scan_count"] == 0:
+                ticket["scan_count"] = 1
+                ticket["status"] = "呼び出し"
+            elif ticket["scan_count"] >= 1:
+                data["tickets"] = [t for t in data["tickets"] if t["number"] != number]
+
+        elif action == "delete":
+            data["tickets"] = [t for t in data["tickets"] if t["number"] != number]
 
     save_data(data)
     return redirect(url_for("admin"))
+
 
 @app.route("/reset", methods=["POST"])
 def reset_tickets():
