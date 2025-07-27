@@ -139,30 +139,44 @@ def monitor():
 def handle_number():
     try:
         number = int(request.form.get("number"))
-
-        # ✅ 1〜999以外の数字は無視（またはメッセージ出して戻す）
         if number < 1 or number > 999:
-            return redirect(url_for("admin"))  # ここを適宜メッセージ付きにしてもOK
-
+            return redirect(url_for("admin"))
     except (ValueError, TypeError):
         return redirect(url_for("admin"))
+
+    action = request.form.get("action", "auto")  # autoは未指定時（手入力送信）のデフォルト動作
 
     data = load_data()
     ticket = next((t for t in data["tickets"] if t["number"] == number), None)
 
-    if ticket is None:
-        data["tickets"].append({
-            "number": number,
-            "status": "受付",
-            "scan_count": 0
-        })
-        generate_qr(number)
-        generate_barcode(number)
-    elif ticket["scan_count"] == 0:
-        ticket["scan_count"] = 1
-        ticket["status"] = "呼び出し"
-    elif ticket["scan_count"] >= 1:
+    if action == "delete":
+        # ✅ 削除処理
         data["tickets"] = [t for t in data["tickets"] if t["number"] != number]
+
+    elif action == "next":
+        # ✅ 状態変更処理（受付→呼び出し→削除）
+        if ticket:
+            if ticket["scan_count"] == 0:
+                ticket["scan_count"] = 1
+                ticket["status"] = "呼び出し"
+            else:
+                data["tickets"] = [t for t in data["tickets"] if t["number"] != number]
+
+    else:
+        # ✅ 自動追加（番号入力フォームからの直接送信など）
+        if ticket is None:
+            data["tickets"].append({
+                "number": number,
+                "status": "受付",
+                "scan_count": 0
+            })
+            generate_qr(number)
+            generate_barcode(number)
+        elif ticket["scan_count"] == 0:
+            ticket["scan_count"] = 1
+            ticket["status"] = "呼び出し"
+        else:
+            data["tickets"] = [t for t in data["tickets"] if t["number"] != number]
 
     save_data(data)
     return redirect(url_for("admin"))
