@@ -5,5 +5,5 @@
   "print_copies": 2,
   "tickets": [],
   "reload_interval": 10,
-  "wait_time_unit": 2
+  "wait_time_unit": 3
 }
