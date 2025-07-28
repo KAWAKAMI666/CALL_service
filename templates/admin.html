@@ -39,7 +39,7 @@
 <h2>【発券済み一覧】</h2>
 <table>
   <tr><th>番号</th><th>状態</th><th>操作</th></tr>
-  {% for ticket in data["tickets"] %}
+  {% for ticket in data["tickets"] | sort(attribute="number") %}
   <tr>
     <td>{{ ticket.number }}</td>
     <td>{{ ticket.status }}</td>
