@@ -17,53 +17,60 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+
+    /* 呼び出し済みの行に色をつける */
+    .called {
+      background-color: #ffe6e6;
+    }
   </style>
 </head>
 <body>
 <div class="box center" style="text-align: center;">
   <h1>呼び出し管理</h1>
 
-<div class="box center" style="text-align: center;">
-  <h2>番号入力（受付 → 呼び出し → 削除）</h2>
-  <form method="POST" action="/handle">
-    番号を入力して送信:
-   <input type="number" name="number" required autofocus style="font-size: 1.5rem; width: 150px; padding: 8px;">
-<button type="submit" style="font-size: 1.2rem; padding: 8px 16px;">送信</button>
+  <div class="box center" style="text-align: center;">
+    <h2>番号入力（受付 → 呼び出し → 削除）</h2>
+    <form method="POST" action="/handle">
+      番号を入力して送信:
+      <input type="number" name="number" required autofocus style="font-size: 1.5rem; width: 150px; padding: 8px;">
+      <button type="submit" style="font-size: 1.2rem; padding: 8px 16px;">送信</button>
+    </form>
+  </div>
+
+  <h2>番号リセット（全削除）</h2>
+  <form method="POST" action="/reset" onsubmit="return confirm('本当にすべての番号を削除してリセットしますか？')">
+    <button type="submit" style="color: red;">⚠ 番号を全てリセットする</button>
   </form>
-<h2>番号リセット（全削除）</h2>
-<form method="POST" action="/reset" onsubmit="return confirm('本当にすべての番号を削除してリセットしますか？')">
-  <button type="submit" style="color: red;">⚠ 番号を全てリセットする</button>
-</form>
 
+  <h2>【発券済み一覧】</h2>
+  <table>
+    <tr><th>番号</th><th>状態</th><th>操作</th></tr>
+    {% for ticket in data["tickets"] | sort(attribute="number") %}
+    <tr {% if ticket.status == "呼び出し" %}class="called"{% endif %}>
+      <td>{{ ticket.number }}</td>
+      <td>{{ ticket.status }}</td>
+      <td>
+        <!-- 状態変更 -->
+        <form method="POST" action="/handle" style="display:inline;">
+          <input type="hidden" name="number" value="{{ ticket.number }}">
+          <input type="hidden" name="action" value="next">
+          <button type="submit">状態変更</button>
+        </form>
 
-<h2>【発券済み一覧】</h2>
-<table>
-  <tr><th>番号</th><th>状態</th><th>操作</th></tr>
-  {% for ticket in data["tickets"] | sort(attribute="number") %}
-  <tr>
-    <td>{{ ticket.number }}</td>
-    <td>{{ ticket.status }}</td>
-    <td>
-      <!-- 状態変更 -->
-      <form method="POST" action="/handle" style="display:inline;">
-        <input type="hidden" name="number" value="{{ ticket.number }}">
-        <input type="hidden" name="action" value="next">
-        <button type="submit">状態変更</button>
-      </form>
-
-      <!-- 削除 -->
-      <form method="POST" action="/handle" style="display:inline;" onsubmit="return confirm('本当に削除しますか？');">
-        <input type="hidden" name="number" value="{{ ticket.number }}">
-        <input type="hidden" name="action" value="delete">
-        <button type="submit" style="color:red;">削除</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
+        <!-- 削除 -->
+        <form method="POST" action="/handle" style="display:inline;" onsubmit="return confirm('本当に削除しますか？');">
+          <input type="hidden" name="number" value="{{ ticket.number }}">
+          <input type="hidden" name="action" value="delete">
+          <button type="submit" style="color:red;">削除</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
 
   <p><a href="/monitor_config">受付画面へ戻る</a></p>
+</div>
 </body>
 </html>
+
 
