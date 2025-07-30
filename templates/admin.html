@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>呼び出し管理画面</title>
-  <meta http-equiv="refresh" content="10">
+  <!-- ✅ 自動リロードは JS で制御するため meta-refresh 削除 -->
   <link rel="stylesheet" href="/static/style.css">
   <style>
     input[type=number]::-webkit-inner-spin-button,
@@ -75,16 +75,23 @@
   <p><a href="/monitor_config">受付画面へ戻る</a></p>
 </div>
 
-<!-- ✅ スクロール位置を記憶して復元 -->
+<!-- ✅ スクロール位置記憶 -->
 <script>
+  // スクロール位置を保存
   window.addEventListener("beforeunload", () => {
     localStorage.setItem("scrollPos", window.scrollY);
   });
 
+  // スクロール位置を復元
   window.addEventListener("load", () => {
     const scrollPos = localStorage.getItem("scrollPos");
     if (scrollPos) window.scrollTo(0, parseInt(scrollPos));
   });
+
+  // ✅ 10秒ごとにJSで更新
+  setInterval(() => {
+    location.reload();
+  }, 10000);
 </script>
 
 </body>
