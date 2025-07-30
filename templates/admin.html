@@ -41,7 +41,7 @@
   <table>
     <tr><th>番号</th><th>状況</th><th>操作</th></tr>
     {% for ticket in data["tickets"] | sort(attribute="number") %}
-    <tr {% if ticket.status == "作成中" %}class="called"{% endif %}>
+    <tr {% if ticket.status == "呼び出し" %}class="called"{% endif %}>
       <td>{{ ticket.number }}</td>
       <td>{{ ticket.status }}</td>
       <td>
