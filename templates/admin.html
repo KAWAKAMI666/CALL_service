@@ -6,19 +6,14 @@
   <meta http-equiv="refresh" content="10">
   <link rel="stylesheet" href="/static/style.css">
   <style>
-    /* スピンボタン削除（Chrome, Safariなど） */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
-
-    /* Firefox対策 */
     input[type=number] {
       -moz-appearance: textfield;
     }
-
-    /* 呼び出し済みの行に色をつける */
     .called {
       background-color: #ffe6e6;
     }
@@ -49,38 +44,49 @@
     <tr {% if ticket.status == "呼び出し" %}class="called"{% endif %}>
       <td>{{ ticket.number }}</td>
       <td>{{ ticket.status }}</td>
-    <td>
-  <!-- 状態変更 -->
-  <form method="POST" action="/handle" style="display:inline;">
-    <input type="hidden" name="number" value="{{ ticket.number }}">
-    <input type="hidden" name="action" value="next">
-    <button type="submit">状態変更</button>
-  </form>
+      <td>
+        <!-- 状態変更 -->
+        <form method="POST" action="/handle" style="display:inline;">
+          <input type="hidden" name="number" value="{{ ticket.number }}">
+          <input type="hidden" name="action" value="next">
+          <button type="submit">状態変更</button>
+        </form>
 
-  <!-- 状態戻す -->
-  {% if ticket.status == "呼び出し" %}
-  <form method="POST" action="/handle" style="display:inline;">
-    <input type="hidden" name="number" value="{{ ticket.number }}">
-    <input type="hidden" name="action" value="back">
-    <button type="submit">戻す</button>
-  </form>
-  {% endif %}
+        <!-- 状態戻す -->
+        {% if ticket.status == "呼び出し" %}
+        <form method="POST" action="/handle" style="display:inline;">
+          <input type="hidden" name="number" value="{{ ticket.number }}">
+          <input type="hidden" name="action" value="back">
+          <button type="submit">状態を戻す</button>
+        </form>
+        {% endif %}
 
-  <!-- 削除 -->
-  <form method="POST" action="/handle" style="display:inline;" onsubmit="return confirm('本当に削除しますか？');">
-    <input type="hidden" name="number" value="{{ ticket.number }}">
-    <input type="hidden" name="action" value="delete">
-    <button type="submit" style="color:red;">削除</button>
-  </form>
-</td>
-
+        <!-- 削除 -->
+        <form method="POST" action="/handle" style="display:inline;" onsubmit="return confirm('本当に削除しますか？');">
+          <input type="hidden" name="number" value="{{ ticket.number }}">
+          <input type="hidden" name="action" value="delete">
+          <button type="submit" style="color:red;">削除</button>
+        </form>
+      </td>
     </tr>
     {% endfor %}
   </table>
 
   <p><a href="/monitor_config">受付画面へ戻る</a></p>
 </div>
+
+<!-- ✅ スクロール位置を記憶して復元 -->
+<script>
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("scrollPos", window.scrollY);
+  });
+
+  window.addEventListener("load", () => {
+    const scrollPos = localStorage.getItem("scrollPos");
+    if (scrollPos) window.scrollTo(0, parseInt(scrollPos));
+  });
+</script>
+
 </body>
 </html>
-
 
