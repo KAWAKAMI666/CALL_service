@@ -115,7 +115,7 @@ def monitor():
     wait_time_unit = data.get("wait_time_unit", 3)
     wait_list = get_waiting_numbers()
     latest = get_latest_number()
-    history = sorted(get_called_numbers())[-10:]
+    history = sorted(get_called_numbers())
 
     ticket = request.args.get("ticket")
     your_status = None
@@ -161,6 +161,12 @@ def handle_number():
                 ticket["status"] = "呼び出し"
             else:
                 data["tickets"] = [t for t in data["tickets"] if t["number"] != number]
+
+    elif action == "back":
+        # ✅ 戻す処理（呼び出し → 受付）
+        if ticket and ticket["status"] == "呼び出し":
+            ticket["scan_count"] = 0
+            ticket["status"] = "受付"
 
     else:
         # ✅ 自動追加（番号入力フォームからの直接送信など）
