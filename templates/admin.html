@@ -24,7 +24,7 @@
   <h1>呼び出し管理システム</h1>
 
   <div class="box center" style="text-align: center;">
-    <h2>番号入力（受付 → 呼び出し → 削除）</h2>
+    <h2>番号入力（作成中 → 呼び出し → 削除）</h2>
     <form method="POST" action="/handle">
       番号を入力して送信:
       <input type="number" name="number" required autofocus style="font-size: 1.5rem; width: 150px; padding: 8px;">
@@ -39,25 +39,25 @@
 
   <h2>【発券済み一覧】</h2>
   <table>
-    <tr><th>番号</th><th>状態</th><th>操作</th></tr>
+    <tr><th>番号</th><th>状況</th><th>操作</th></tr>
     {% for ticket in data["tickets"] | sort(attribute="number") %}
     <tr {% if ticket.status == "呼び出し" %}class="called"{% endif %}>
       <td>{{ ticket.number }}</td>
       <td>{{ ticket.status }}</td>
       <td>
-        <!-- 状態変更 -->
+        <!-- 呼び出し -->
         <form method="POST" action="/handle" style="display:inline;">
           <input type="hidden" name="number" value="{{ ticket.number }}">
           <input type="hidden" name="action" value="next">
-          <button type="submit">状態変更</button>
+          <button type="submit">呼び出し</button>
         </form>
 
-        <!-- 状態戻す -->
+        <!-- 作成中に戻す -->
         {% if ticket.status == "呼び出し" %}
         <form method="POST" action="/handle" style="display:inline;">
           <input type="hidden" name="number" value="{{ ticket.number }}">
           <input type="hidden" name="action" value="back">
-          <button type="submit">状態を戻す</button>
+          <button type="submit">作成中に戻す</button>
         </form>
         {% endif %}
 
@@ -72,7 +72,7 @@
     {% endfor %}
   </table>
 
-  <p><a href="/monitor_config">受付画面へ戻る</a></p>
+  <p><a href="/monitor_config">ホーム画面へ戻る</a></p>
 </div>
 
 <!-- ✅ スクロール位置記憶 -->
@@ -91,7 +91,7 @@
   // ✅ 120秒ごとにJSで更新
   setInterval(() => {
     location.reload();
-  }, 120000);
+  }, 60000);
 </script>
 
 </body>
