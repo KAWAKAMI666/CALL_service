@@ -28,12 +28,12 @@
 </head>
 <body>
 <div class="box center" style="text-align: center;">
-  <h1>🍖 モニター表示設定 🍖</h1>
+  <h1>🍖 呼び出し管理システム 🍖</h1>
 
   <div class="box center" style="text-align: center;">
     <h2>【モニター表示の設定】</h2>
     <form method="POST" action="/set">
-      表示再読み込み間隔（秒）:
+      ページ再読み込み間隔（秒）:
       <select name="reload_interval">
         <option value="10" {% if data.reload_interval == 10 %}selected{% endif %}>10秒</option>
         <option value="30" {% if data.reload_interval == 30 %}selected{% endif %}>30秒</option>
@@ -67,12 +67,12 @@
   </div>
 
   <div class="box center">
-    <h2>【モニター画面リンク】</h2>
-    <p><a href="/monitor" target="_blank">▶ モニター画面を開く</a></p>
+    <h2>【呼び出し表示画面:お客様側】</h2>
+    <p><a href="/monitor" target="_blank">▶ 呼び出し表示画面を開く</a></p>
   </div>
 
 <div class="box center">
-  <h2>【呼び出し管理画面リンク】</h2>
+  <h2>【呼び出し管理画面:スタッフ側】</h2>
   <p><a href="/管理" target="_blank">▶ 呼び出し管理画面を開く</a></p>
 </div>
 
