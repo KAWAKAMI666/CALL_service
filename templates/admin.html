@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>呼び出し管理画面</title>
-  <!-- ✅ 自動リロードは JS で制御するため meta-refresh 削除 -->
   <link rel="stylesheet" href="/static/style.css">
   <style>
     input[type=number]::-webkit-inner-spin-button,
@@ -17,6 +16,58 @@
     .called {
       background-color: #ffe6e6;
     }
+    .flash {
+      animation: flash-bg 0.4s ease 2;
+    }
+    @keyframes flash-bg {
+      0% { background:#ffefef; }
+      100% { background:#ffffff; }
+    }
+
+    /* ===== 中央警告UI ===== */
+    #alarm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.35);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    #alarm-modal {
+      max-width: 640px; width: 90%;
+      background: #fff6f6;
+      border: 2px solid #ff9a9a;
+      border-radius: 14px;
+      padding: 22px 24px;
+      color: #8a0000;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+      transform: scale(.95);
+      opacity: 0;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    #alarm-overlay.show #alarm-modal {
+      transform: scale(1);
+      opacity: 1;
+    }
+    #alarm-modal .title {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+    #alarm-modal .detail {
+      font-size: 1.15rem;
+    }
+    #alarm-modal .sub {
+      font-size: .9rem; opacity:.8; margin-top:10px;
+    }
+    #alarm-close {
+      margin-top: 14px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid #b00000;
+      background: #fff;
+      color:#b00000; cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -25,9 +76,9 @@
 
   <div class="box center" style="text-align: center;">
     <h2>番号入力（受付 → 呼び出し → 削除）</h2>
-    <form method="POST" action="/handle">
+    <form id="top-input-form" method="POST" action="/handle">
       番号を入力して送信:
-      <input type="number" name="number" required autofocus style="font-size: 1.5rem; width: 150px; padding: 8px;">
+      <input id="top-input-number" type="number" name="number" required autofocus style="font-size: 1.5rem; width: 150px; padding: 8px;">
       <button type="submit" style="font-size: 1.2rem; padding: 8px 16px;">送信</button>
     </form>
   </div>
@@ -38,21 +89,20 @@
   </form>
 
   <h2>【発券済み一覧】</h2>
-  <table>
+  <table id="tickets-table">
     <tr><th>番号</th><th>状況</th><th>操作</th></tr>
     {% for ticket in data["tickets"] | sort(attribute="number") %}
     <tr {% if ticket.status == "呼び出し" %}class="called"{% endif %}>
-      <td>{{ ticket.number }}</td>
-      <td>{{ ticket.status }}</td>
+      <td class="td-number">{{ ticket.number }}</td>
+      <td class="td-status">{{ ticket.status }}</td>
       <td>
         <!-- 状況変更 -->
-        <form method="POST" action="/handle" style="display:inline;">
+        <form method="POST" action="/handle" style="display:inline;" class="form-next">
           <input type="hidden" name="number" value="{{ ticket.number }}">
           <input type="hidden" name="action" value="next">
           <button type="submit">進む</button>
         </form>
 
-        <!-- 作成中に戻す -->
         {% if ticket.status == "呼び出し" %}
         <form method="POST" action="/handle" style="display:inline;">
           <input type="hidden" name="number" value="{{ ticket.number }}">
@@ -61,7 +111,6 @@
         </form>
         {% endif %}
 
-        <!-- 削除 -->
         <form method="POST" action="/handle" style="display:inline;" onsubmit="return confirm('本当に削除しますか？');">
           <input type="hidden" name="number" value="{{ ticket.number }}">
           <input type="hidden" name="action" value="delete">
@@ -75,25 +124,68 @@
   <p><a href="/monitor_config">ホーム画面へ戻る</a></p>
 </div>
 
-<!-- ✅ スクロール位置記憶 -->
+<!-- ===== 中央警告UI ===== -->
+<div id="alarm-overlay" role="dialog" aria-live="assertive" aria-label="呼び出し警告">
+  <div id="alarm-modal">
+    <div class="title">⚠ 未呼び出しがあります</div>
+    <div class="detail" id="alarm-text"></div>
+    <div class="sub">この表示は8秒後に自動で閉じます。</div>
+    <button id="alarm-close" type="button">閉じる</button>
+  </div>
+</div>
+
+<!-- 警告音（static/alarm.mp3 を必ず置く） -->
+<audio id="alarm-audio" src="/static/alarm.mp3" preload="auto"></audio>
+
 <script>
-  // スクロール位置を保存
-  window.addEventListener("beforeunload", () => {
-    localStorage.setItem("scrollPos", window.scrollY);
-  });
+  const overlay = document.getElementById('alarm-overlay');
+  const textEl  = document.getElementById('alarm-text');
+  const closeBt = document.getElementById('alarm-close');
+  const alarm   = document.getElementById('alarm-audio');
+  let hideTimer = null;
 
-  // スクロール位置を復元
-  window.addEventListener("load", () => {
-    const scrollPos = localStorage.getItem("scrollPos");
-    if (scrollPos) window.scrollTo(0, parseInt(scrollPos));
-  });
+  function showCenterAlert(html) {
+    if (hideTimer) clearTimeout(hideTimer);
+    textEl.innerHTML = html;
+    overlay.classList.add('show');
+    overlay.style.display = 'flex';
+    hideTimer = setTimeout(hideCenterAlert, 8000);
+  }
+  function hideCenterAlert() {
+    overlay.classList.remove('show');
+    setTimeout(() => { overlay.style.display = 'none'; }, 180);
+  }
+  closeBt.addEventListener('click', hideCenterAlert);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) hideCenterAlert(); });
 
-  // ✅ 120秒ごとにJSで更新
-  setInterval(() => {
-    location.reload();
-  }, 60000);
+  async function pollGap() {
+    try {
+      const r = await fetch('/gap_state', { cache: 'no-store' });
+      const j = await r.json();
+      if (!j.ok) return;
+
+      if (j.playAlarm) {
+        const miss = (j.missing && j.missing.length) ? j.missing.join(', ') : '';
+        const message = miss ? `未呼び出し: <strong>${miss}</strong>` : '未呼び出しがあります';
+        showCenterAlert(message);
+
+        try {
+          alarm.muted = false;
+          alarm.volume = 1.0;
+          alarm.currentTime = 0;
+          await alarm.play();
+          console.log("警告音再生OK");
+        } catch (err) {
+          console.warn('audio.play() 失敗:', err);
+        }
+      }
+    } catch (e) {
+      console.warn('pollGap failed', e);
+    }
+  }
+  setInterval(pollGap, 2000);
 </script>
-
 </body>
 </html>
+
 
