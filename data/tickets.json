@@ -6,7 +6,7 @@
   "tickets": [],
   "reload_interval": 10,
   "wait_time_unit": 4,
-  "last_called": null,
+  "last_called": 1,
   "intentional_skips": [],
   "pending_missing": [
     7,

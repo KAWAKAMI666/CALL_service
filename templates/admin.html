@@ -138,6 +138,7 @@
 <audio id="alarm-audio" src="/static/alarm.mp3" preload="auto"></audio>
 
 <script>
+  // ===== 中央警告UI =====
   const overlay = document.getElementById('alarm-overlay');
   const textEl  = document.getElementById('alarm-text');
   const closeBt = document.getElementById('alarm-close');
@@ -184,8 +185,101 @@
     }
   }
   setInterval(pollGap, 2000);
+
+  // ====== ① 60秒ごとに自動更新 ======
+  // リロード前に現在のスクロール位置を保存してからリロード
+  setTimeout(() => {
+    saveScroll(); // 直前の位置を保存
+    location.reload();
+  }, 60000);
+
+  // ====== ② スクロール位置保持（送信・削除・進む・戻る後も元の位置へ） ======
+  // sessionStorageに保存（タブ毎に独立）
+  const SCROLL_KEY = 'callmgr:scroll-state';
+
+  function saveScroll(extra = {}) {
+    try {
+      const payload = {
+        y: window.scrollY,
+        t: Date.now(),
+        target: extra.target ?? null
+      };
+      sessionStorage.setItem(SCROLL_KEY, JSON.stringify(payload));
+    } catch (_) {}
+  }
+
+  function restoreScroll() {
+    try {
+      const raw = sessionStorage.getItem(SCROLL_KEY);
+      if (!raw) return;
+      const obj = JSON.parse(raw);
+      // 古い保存は無視（15秒以内を有効とする）
+      if (!obj || !obj.t || Date.now() - obj.t > 15000) return;
+
+      // レンダ後に復元（複数回呼んで安全に位置決め）
+      const doScroll = () => window.scrollTo(0, obj.y || 0);
+      requestAnimationFrame(() => {
+        doScroll();
+        setTimeout(doScroll, 0);
+        setTimeout(doScroll, 60);
+        // もし対象番号があれば、その行を軽くフラッシュ
+        if (obj.target) flashRowByNumber(String(obj.target));
+      });
+    } catch (_) {}
+  }
+
+  function flashRowByNumber(numStr) {
+    const rows = document.querySelectorAll('#tickets-table tr');
+    for (const tr of rows) {
+      const td = tr.querySelector('.td-number');
+      if (!td) continue;
+      if (td.textContent.trim() === numStr) {
+        tr.classList.add('flash');
+        setTimeout(() => tr.classList.remove('flash'), 900);
+        break;
+      }
+    }
+  }
+
+  // 送信系フォームのクリック/送信前に現在位置を保存
+  function attachScrollRemember() {
+    // テーブル内の全フォーム（進む/戻る/削除）
+    document.querySelectorAll('#tickets-table form').forEach(f => {
+      const num = f.querySelector('input[name="number"]')?.value;
+      // クリック時に保存（confirmでキャンセルされても害なし）
+      f.querySelectorAll('button[type="submit"]').forEach(btn => {
+        btn.addEventListener('click', () => saveScroll({ target: num }), { passive: true });
+      });
+      // 念のため submit捕捉でも保存
+      f.addEventListener('submit', () => saveScroll({ target: num }), { capture: true });
+    });
+
+    // 上部の「番号入力フォーム」も保持
+    const topForm = document.getElementById('top-input-form');
+    if (topForm) {
+      const numInput = document.getElementById('top-input-number');
+      topForm.addEventListener('submit', () => {
+        saveScroll({ target: numInput?.value });
+      }, { capture: true });
+    }
+
+    // 「番号リセット（全削除）」フォームも位置保存
+    const resetForm = document.querySelector('form[action="/reset"]');
+    if (resetForm) {
+      resetForm.addEventListener('submit', () => saveScroll(), { capture: true });
+    }
+  }
+
+  // ページ離脱時（手動更新やナビゲーション時）にも保存しておく
+  window.addEventListener('beforeunload', () => saveScroll());
+  // ブラウザ自動復元の挙動を明示（手動で制御）
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+
+  // 初期化
+  window.addEventListener('DOMContentLoaded', () => {
+    attachScrollRemember();
+    restoreScroll();
+  });
 </script>
-</body>
-</html>
-
-
